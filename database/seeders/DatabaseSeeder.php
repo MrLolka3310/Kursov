@@ -3,8 +3,11 @@
 namespace Database\Seeders;
 
 use App\Models\User;
+use App\Models\Role;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Hash;
 
 class DatabaseSeeder extends Seeder
 {
@@ -15,11 +18,63 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        // User::factory(10)->create();
+        $adminRole = Role::firstOrCreate(['name' => 'admin']);
+        $storekeeperRole = Role::firstOrCreate(['name' => 'storekeeper']);
+        $managerRole = Role::firstOrCreate(['name' => 'manager']);
 
-        User::factory()->create([
-            'name' => 'Test User',
-            'email' => 'test@example.com',
-        ]);
+        User::firstOrCreate(
+            ['email' => 'admin@example.com'],
+            [
+                'name' => 'Admin User',
+                'password' => Hash::make('password'),
+                'role_id' => $adminRole->id,
+            ]
+        );
+
+        User::firstOrCreate(
+            ['email' => 'admin2@example.com'],
+            [
+                'name' => 'Admin User 2',
+                'password' => Hash::make('password'),
+                'role_id' => $adminRole->id,
+            ]
+        );
+
+        User::firstOrCreate(
+            ['email' => 'storekeeper@example.com'],
+            [
+                'name' => 'Storekeeper User',
+                'password' => Hash::make('password'),
+                'role_id' => $storekeeperRole->id,
+            ]
+        );
+
+        User::firstOrCreate(
+            ['email' => 'storekeeper2@example.com'],
+            [
+                'name' => 'Storekeeper User 2',
+                'password' => Hash::make('password'),
+                'role_id' => $storekeeperRole->id,
+            ]
+        );
+
+        User::firstOrCreate(
+            ['email' => 'manager@example.com'],
+            [
+                'name' => 'Manager User',
+                'password' => Hash::make('password'),
+                'role_id' => $managerRole->id,
+            ]
+        );
+
+        User::firstOrCreate(
+            ['email' => 'manager2@example.com'],
+            [
+                'name' => 'Manager User 2',
+                'password' => Hash::make('password'),
+                'role_id' => $managerRole->id,
+            ]
+        );
     }
 }
+
