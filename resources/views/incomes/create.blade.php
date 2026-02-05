@@ -1,32 +1,66 @@
 @extends('layouts.app')
 
 @section('content')
-<h3>Приход товара</h3>
+<div class="card">
+    <div class="card-header">
+        <h3 class="card-title">Приход товара</h3>
+    </div>
+    <div class="card-body">
+        <form method="POST" action="/incomes">
+            @csrf
 
-<form method="POST" action="/incomes">
-@csrf
+            <div class="form-group">
+                <label for="warehouse_id">Выберите склад:</label>
+                <select name="warehouse_id" id="warehouse_id" class="form-control" required>
+                    <option value="">-- Выберите склад --</option>
+                    @foreach($warehouses as $w)
+                    <option value="{{ $w->id }}">{{ $w->name }}</option>
+                    @endforeach
+                </select>
+            </div>
 
-<select name="warehouse_id">
-@foreach($warehouses as $w)
-<option value="{{ $w->id }}">{{ $w->name }}</option>
-@endforeach
-</select>
+            <div class="form-group">
+                <label for="supplier_id">Выберите поставщика:</label>
+                <select name="supplier_id" id="supplier_id" class="form-control" required>
+                    <option value="">-- Выберите поставщика --</option>
+                    @foreach($suppliers as $s)
+                    <option value="{{ $s->id }}">{{ $s->name }}</option>
+                    @endforeach
+                </select>
+            </div>
 
-<select name="supplier_id">
-@foreach($suppliers as $s)
-<option value="{{ $s->id }}">{{ $s->name }}</option>
-@endforeach
-</select>
+            <h4>Товары</h4>
+            <div class="table-container">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Название товара</th>
+                            <th>Количество</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach($products as $p)
+                        <tr>
+                            <td>{{ $p->name }}</td>
+                            <td>
+                                <input type="number"
+                                      name="products[{{ $p->id }}]"
+                                      value="0"
+                                      min="0"
+                                      class="form-control"
+                                      placeholder="0">
+                            </td>
+                        </tr>
+                        @endforeach
+                    </tbody>
+                </table>
+            </div>
 
-<h4>Товары</h4>
-
-@foreach($products as $p)
-<div>
-    {{ $p->name }}
-    <input type="number" name="products[{{ $p->id }}]" value="0" min="0">
+            <div class="form-group">
+                <button type="submit" class="btn btn-success">Сохранить приход</button>
+                <a href="/incomes" class="btn btn-secondary">Отмена</a>
+            </div>
+        </form>
+    </div>
 </div>
-@endforeach
-
-<button>Сохранить приход</button>
-</form>
 @endsection
