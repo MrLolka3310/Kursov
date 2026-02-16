@@ -19,9 +19,28 @@ class ExpenseController extends Controller
 
     public function create()
     {
+        $warehouses = Warehouse::all();
+        $products = Product::with('category')->get();
+        
+        // Get stock for each product (default to 0 if no stock record)
+        $stocks = [];
+        foreach ($products as $product) {
+            $stocks[$product->id] = 0;
+        }
+        
+        // Get actual stock if warehouse is selected
+        $selectedWarehouseId = request('warehouse_id');
+        if ($selectedWarehouseId) {
+            $warehouseStocks = Stock::where('warehouse_id', $selectedWarehouseId)->get();
+            foreach ($warehouseStocks as $stock) {
+                $stocks[$stock->product_id] = $stock->quantity;
+            }
+        }
+        
         return view('expenses.create', [
-            'warehouses' => Warehouse::all(),
-            'products' => Product::all(),
+            'warehouses' => $warehouses,
+            'products' => $products,
+            'stocks' => $stocks,
         ]);
     }
 

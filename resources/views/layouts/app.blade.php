@@ -26,12 +26,12 @@
                         <a href="/incomes">Приход</a>
                         <a href="/expenses">Расход</a>
                         <a href="/stocks">Остатки</a>
-                        <a href="/reports/stocks">Отчёт по остаткам</a>
+                        <a href="/reports/stocks">Отчет по остаткам</a>
                         <a href="/reports/movements">Движение товаров</a>
                     @endif
 
                     @if(in_array(auth()->user()->role->name, ['admin', 'manager']))
-                        <a href="/reports/stocks">Отчёты</a>
+                        <a href="/reports/stocks">Отчеты</a>
                     @endif
 
                     <form method="POST" action="/logout" style="display: inline;">
@@ -44,7 +44,7 @@
     </header>
 
     <main class="container">
-        <div class="content-wrapper fade-in">
+        <div class="content-wrapper">
             @yield('content')
         </div>
     </main>
