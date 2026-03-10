@@ -62,6 +62,7 @@
                 </table>
             </div>
 
+<<<<<<< Updated upstream
             <div class="form-group mt-3">
                 <button type="submit" class="btn btn-danger">Списать товар</button>
                 <a href="/expenses" class="btn btn-secondary">Отмена</a>
@@ -73,5 +74,16 @@
             @endif
         </form>
     </div>
+=======
+<h4>Товары</h4>
+
+@foreach($products as $p)
+<div>
+    {{ $p->name }}
+    <input type="number"
+        name="products[{{ $p->id }}]"
+        value="0"
+        min="0">
+>>>>>>> Stashed changes
 </div>
 @endsection
