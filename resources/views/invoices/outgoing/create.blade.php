@@ -1,0 +1,230 @@
+@extends('layouts.app')
+
+@section('title', 'Новая расходная накладная')
+
+@section('page-title')
+    <i class="fas fa-plus"></i>
+    Новая расходная накладная
+@endsection
+
+@section('content')
+    <div class="card">
+        <div class="card-header">
+            <div>
+                <i class="fas fa-shopping-cart"></i>
+                Создание расходной накладной
+            </div>
+            <a href="{{ route('outgoing-orders.index') }}" class="btn btn-outline btn-sm">
+                <i class="fas fa-arrow-left"></i>
+                Назад
+            </a>
+        </div>
+        <div class="card-body">
+            <form method="POST" action="{{ route('outgoing-orders.store') }}" id="orderForm">
+                @csrf
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label><i class="fas fa-hashtag"></i> Номер заказа *</label>
+                        <input type="text" name="number" class="form-control @error('number') is-invalid @enderror" value="{{ old('number') }}" required>
+                        @error('number')
+                            <small style="color: var(--danger-color);">{{ $message }}</small>
+                        @enderror
+                    </div>
+                    
+                    <div class="form-group">
+                        <label><i class="fas fa-calendar"></i> Дата *</label>
+                        <input type="date" name="order_date" class="form-control @error('order_date') is-invalid @enderror" value="{{ old('order_date', date('Y-m-d')) }}" required>
+                        @error('order_date')
+                            <small style="color: var(--danger-color);">{{ $message }}</small>
+                        @enderror
+                    </div>
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label><i class="fas fa-user"></i> Клиент *</label>
+                        <select name="customer_id" class="form-control @error('customer_id') is-invalid @enderror" required>
+                            <option value="">Выберите клиента</option>
+                            @foreach($customers as $customer)
+                                <option value="{{ $customer->id }}" {{ old('customer_id') == $customer->id ? 'selected' : '' }}>
+                                    {{ $customer->name }}
+                                </option>
+                            @endforeach
+                        </select>
+                        @error('customer_id')
+                            <small style="color: var(--danger-color);">{{ $message }}</small>
+                        @enderror
+                    </div>
+                    
+                    <div class="form-group">
+                        <label><i class="fas fa-warehouse"></i> Ячейка склада *</label>
+                        <select name="warehouse_cell_id" class="form-control @error('warehouse_cell_id') is-invalid @enderror" required>
+                            <option value="">Выберите ячейку</option>
+                            @foreach($cells as $cell)
+                                <option value="{{ $cell->id }}" {{ old('warehouse_cell_id') == $cell->id ? 'selected' : '' }}>
+                                    {{ $cell->code }} ({{ $cell->zone ?? 'Без зоны' }})
+                                </option>
+                            @endforeach
+                        </select>
+                        @error('warehouse_cell_id')
+                            <small style="color: var(--danger-color);">{{ $message }}</small>
+                        @enderror
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label><i class="fas fa-sticky-note"></i> Примечание</label>
+                    <textarea name="notes" class="form-control @error('notes') is-invalid @enderror" rows="3">{{ old('notes') }}</textarea>
+                    @error('notes')
+                        <small style="color: var(--danger-color);">{{ $message }}</small>
+                    @enderror
+                </div>
+                
+                <hr>
+                
+                <h4 style="margin-bottom: 20px;">Товары в заказе</h4>
+                
+                <div id="items-container">
+                    <!-- Здесь будут динамически добавляться товары -->
+                </div>
+                
+                <button type="button" class="btn btn-outline" id="add-item" style="margin-bottom: 20px;">
+                    <i class="fas fa-plus"></i>
+                    Добавить товар
+                </button>
+                
+                <div class="form-group">
+                    <label>Общая сумма:</label>
+                    <h3 id="total-amount">0.00 ₽</h3>
+                </div>
+                
+                <hr>
+                
+                <div style="display: flex; gap: 10px;">
+                    <button type="submit" class="btn btn-success">
+                        <i class="fas fa-save"></i>
+                        Сохранить заказ
+                    </button>
+                    <a href="{{ route('outgoing-orders.index') }}" class="btn btn-outline">
+                        <i class="fas fa-times"></i>
+                        Отмена
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+@endsection
+
+@push('styles')
+<style>
+    .item-row {
+        background: #f8f9fa;
+        padding: 15px;
+        margin-bottom: 15px;
+        border-radius: 5px;
+        border-left: 3px solid var(--secondary-color);
+        animation: slideInRight 0.3s;
+    }
+    
+    .item-row .remove-item {
+        margin-top: 24px;
+    }
+    
+    .is-invalid {
+        border-color: var(--danger-color) !important;
+    }
+</style>
+@endpush
+
+@push('scripts')
+<script>
+    let itemIndex = 0;
+    const products = @json($products);
+    
+    document.getElementById('add-item').addEventListener('click', function() {
+        const container = document.getElementById('items-container');
+        const template = `
+            <div class="item-row" data-index="${itemIndex}">
+                <div class="form-row">
+                    <div class="form-group" style="flex: 2;">
+                        <label>Товар *</label>
+                        <select name="items[${itemIndex}][product_id]" class="form-control product-select" required>
+                            <option value="">Выберите товар</option>
+                            ${products.map(p => `<option value="${p.id}" data-price="${p.selling_price || 0}">${p.name} (${p.sku})</option>`).join('')}
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Количество *</label>
+                        <input type="number" name="items[${itemIndex}][quantity]" class="form-control quantity" step="0.001" min="0.001" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Цена</label>
+                        <input type="number" name="items[${itemIndex}][price]" class="form-control price" step="0.01" min="0" readonly>
+                    </div>
+                    <div class="form-group">
+                        <label>Сумма</label>
+                        <input type="text" class="form-control item-total" readonly>
+                    </div>
+                    <div class="form-group remove-item">
+                        <label>&nbsp;</label>
+                        <button type="button" class="btn btn-danger btn-sm" onclick="removeItem(this)">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        `;
+        
+        container.insertAdjacentHTML('beforeend', template);
+        
+        // Добавляем обработчики для нового элемента
+        const row = container.lastElementChild;
+        const select = row.querySelector('.product-select');
+        const quantity = row.querySelector('.quantity');
+        const price = row.querySelector('.price');
+        
+        select.addEventListener('change', function() {
+            const selected = this.options[this.selectedIndex];
+            const sellingPrice = selected.dataset.price;
+            if (sellingPrice && sellingPrice > 0) {
+                price.value = sellingPrice;
+            }
+            calculateItemTotal(row);
+            calculateTotal();
+        });
+        
+        quantity.addEventListener('input', function() {
+            calculateItemTotal(row);
+            calculateTotal();
+        });
+        
+        itemIndex++;
+    });
+    
+    function calculateItemTotal(row) {
+        const quantity = parseFloat(row.querySelector('.quantity').value) || 0;
+        const price = parseFloat(row.querySelector('.price').value) || 0;
+        const total = quantity * price;
+        row.querySelector('.item-total').value = total.toFixed(2);
+    }
+    
+    function calculateTotal() {
+        let total = 0;
+        document.querySelectorAll('.item-total').forEach(input => {
+            total += parseFloat(input.value) || 0;
+        });
+        document.getElementById('total-amount').textContent = total.toFixed(2) + ' ₽';
+    }
+    
+    function removeItem(button) {
+        if (confirm('Удалить товар из заказа?')) {
+            button.closest('.item-row').remove();
+            calculateTotal();
+        }
+    }
+    
+    // Добавляем первый товар автоматически
+    document.getElementById('add-item').click();
+</script>
+@endpush
