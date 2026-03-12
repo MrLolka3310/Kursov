@@ -16,6 +16,11 @@ class OutgoingOrderController extends Controller
 {
     public function index(Request $request)
     {
+        // Проверяем права на просмотр
+        if (!in_array(auth()->user()->role, ['admin', 'manager', 'storekeeper', 'accountant'])) {
+            abort(403, 'У вас нет прав для просмотра расходных накладных.');
+        }
+
         $query = OutgoingOrder::with(['customer', 'user', 'warehouseCell']);
         
         if ($request->has('search')) {
@@ -39,6 +44,11 @@ class OutgoingOrderController extends Controller
 
     public function create()
     {
+        // Только админ, менеджер и кладовщик могут создавать расходные накладные
+        if (!in_array(auth()->user()->role, ['admin', 'manager', 'storekeeper'])) {
+            abort(403, 'У вас нет прав для создания расходных накладных.');
+        }
+
         $customers = Customer::all();
         $cells = WarehouseCell::where('is_active', true)->get();
         $products = Product::all();
@@ -48,6 +58,11 @@ class OutgoingOrderController extends Controller
 
     public function store(Request $request)
     {
+        // Только админ, менеджер и кладовщик могут создавать расходные накладные
+        if (!in_array(auth()->user()->role, ['admin', 'manager', 'storekeeper'])) {
+            abort(403, 'У вас нет прав для создания расходных накладных.');
+        }
+
         $validated = $request->validate([
             'number' => 'required|unique:outgoing_orders|max:50',
             'order_date' => 'required|date',
@@ -127,12 +142,22 @@ class OutgoingOrderController extends Controller
 
     public function show(OutgoingOrder $outgoingOrder)
     {
+        // Проверяем права на просмотр
+        if (!in_array(auth()->user()->role, ['admin', 'manager', 'storekeeper', 'accountant'])) {
+            abort(403, 'У вас нет прав для просмотра расходных накладных.');
+        }
+
         $outgoingOrder->load(['customer', 'user', 'warehouseCell', 'items.product']);
         return view('invoices.outgoing.show', compact('outgoingOrder'));
     }
 
     public function destroy(OutgoingOrder $outgoingOrder)
     {
+        // Только админ может удалять накладные
+        if (auth()->user()->role !== 'admin') {
+            abort(403, 'У вас нет прав для удаления накладных.');
+        }
+
         if ($outgoingOrder->status !== 'draft') {
             return back()->with('error', 'Нельзя удалить проведенную накладную.');
         }

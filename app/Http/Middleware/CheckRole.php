@@ -15,7 +15,7 @@ class CheckRole
         }
 
         if (!in_array($request->user()->role, $roles)) {
-            abort(403, 'У вас нет прав для доступа к этой странице.');
+            abort(403, 'У вас нет доступа к этому разделу.');
         }
 
         return $next($request);

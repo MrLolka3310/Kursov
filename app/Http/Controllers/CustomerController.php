@@ -9,6 +9,11 @@ class CustomerController extends Controller
 {
     public function index(Request $request)
     {
+        // Проверяем права на просмотр
+        if (!in_array(auth()->user()->role, ['admin', 'manager'])) {
+            abort(403, 'У вас нет доступа к этому разделу.');
+        }
+        
         $query = Customer::query();
         
         if ($request->has('search')) {
@@ -28,11 +33,21 @@ class CustomerController extends Controller
 
     public function create()
     {
+        // Проверяем права на создание
+        if (!in_array(auth()->user()->role, ['admin', 'manager'])) {
+            abort(403, 'У вас нет доступа к этому разделу.');
+        }
+        
         return view('customers.create');
     }
 
     public function store(Request $request)
     {
+        // Проверяем права на создание
+        if (!in_array(auth()->user()->role, ['admin', 'manager'])) {
+            abort(403, 'У вас нет доступа к этому разделу.');
+        }
+        
         $validated = $request->validate([
             'name' => 'required|max:255',
             'contact_person' => 'nullable|max:100',
@@ -52,17 +67,32 @@ class CustomerController extends Controller
 
     public function show(Customer $customer)
     {
+        // Проверяем права на просмотр
+        if (!in_array(auth()->user()->role, ['admin', 'manager'])) {
+            abort(403, 'У вас нет доступа к этому разделу.');
+        }
+        
         $customer->load('outgoingOrders');
         return view('customers.show', compact('customer'));
     }
 
     public function edit(Customer $customer)
     {
+        // Проверяем права на редактирование
+        if (!in_array(auth()->user()->role, ['admin', 'manager'])) {
+            abort(403, 'У вас нет доступа к этому разделу.');
+        }
+        
         return view('customers.edit', compact('customer'));
     }
 
     public function update(Request $request, Customer $customer)
     {
+        // Проверяем права на редактирование
+        if (!in_array(auth()->user()->role, ['admin', 'manager'])) {
+            abort(403, 'У вас нет доступа к этому разделу.');
+        }
+        
         $validated = $request->validate([
             'name' => 'required|max:255',
             'contact_person' => 'nullable|max:100',
@@ -82,6 +112,11 @@ class CustomerController extends Controller
 
     public function destroy(Customer $customer)
     {
+        // Только админ может удалять клиентов
+        if (auth()->user()->role !== 'admin') {
+            abort(403, 'У вас нет доступа к этому разделу.');
+        }
+        
         if ($customer->outgoingOrders()->exists()) {
             return back()->with('error', 'Невозможно удалить клиента, так как есть связанные заказы.');
         }

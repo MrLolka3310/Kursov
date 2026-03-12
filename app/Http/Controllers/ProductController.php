@@ -11,6 +11,7 @@ class ProductController extends Controller
 {
     public function index(Request $request)
     {
+        // Все могут просматривать товары
         $query = Product::with('category');
         
         if ($request->has('search')) {
@@ -34,12 +35,22 @@ class ProductController extends Controller
 
     public function create()
     {
+        // Только админ и менеджер могут создавать товары
+        if (!in_array(auth()->user()->role, ['admin', 'manager'])) {
+            abort(403, 'У вас нет прав для создания товаров.');
+        }
+        
         $categories = Category::all();
         return view('products.create', compact('categories'));
     }
 
     public function store(Request $request)
     {
+        // Только админ и менеджер могут создавать товары
+        if (!in_array(auth()->user()->role, ['admin', 'manager'])) {
+            abort(403, 'У вас нет прав для создания товаров.');
+        }
+        
         $validated = $request->validate([
             'sku' => 'required|unique:products|max:100',
             'name' => 'required|max:255',
@@ -65,6 +76,7 @@ class ProductController extends Controller
 
     public function show(Product $product)
     {
+        // Все могут просматривать товары
         $product->load(['category', 'stockMovements' => function($query) {
             $query->with(['user', 'warehouseCell'])->latest()->take(20);
         }]);
@@ -74,12 +86,22 @@ class ProductController extends Controller
 
     public function edit(Product $product)
     {
+        // Только админ и менеджер могут редактировать товары
+        if (!in_array(auth()->user()->role, ['admin', 'manager'])) {
+            abort(403, 'У вас нет прав для редактирования товаров.');
+        }
+        
         $categories = Category::all();
         return view('products.edit', compact('product', 'categories'));
     }
 
     public function update(Request $request, Product $product)
     {
+        // Только админ и менеджер могут редактировать товары
+        if (!in_array(auth()->user()->role, ['admin', 'manager'])) {
+            abort(403, 'У вас нет прав для редактирования товаров.');
+        }
+        
         $validated = $request->validate([
             'sku' => 'required|max:100|unique:products,sku,' . $product->id,
             'name' => 'required|max:255',
@@ -108,6 +130,11 @@ class ProductController extends Controller
 
     public function destroy(Product $product)
     {
+        // Только админ может удалять товары
+        if (auth()->user()->role !== 'admin') {
+            abort(403, 'У вас нет прав для удаления товаров.');
+        }
+
         if ($product->stockMovements()->exists()) {
             return back()->with('error', 'Невозможно удалить товар, так как есть связанные движения.');
         }

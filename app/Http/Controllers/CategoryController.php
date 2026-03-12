@@ -10,18 +10,33 @@ class CategoryController extends Controller
 {
     public function index()
     {
+        // Проверяем права на просмотр
+        if (!in_array(auth()->user()->role, ['admin', 'manager'])) {
+            abort(403, 'У вас нет доступа к этому разделу.');
+        }
+        
         $categories = Category::with('parent')->paginate(15);
         return view('categories.index', compact('categories'));
     }
 
     public function create()
     {
+        // Проверяем права на создание
+        if (!in_array(auth()->user()->role, ['admin', 'manager'])) {
+            abort(403, 'У вас нет доступа к этому разделу.');
+        }
+        
         $categories = Category::all();
         return view('categories.create', compact('categories'));
     }
 
     public function store(Request $request)
     {
+        // Проверяем права на создание
+        if (!in_array(auth()->user()->role, ['admin', 'manager'])) {
+            abort(403, 'У вас нет доступа к этому разделу.');
+        }
+        
         $validated = $request->validate([
             'name' => 'required|max:100',
             'parent_id' => 'nullable|exists:categories,id',
@@ -38,12 +53,22 @@ class CategoryController extends Controller
 
     public function edit(Category $category)
     {
+        // Проверяем права на редактирование
+        if (!in_array(auth()->user()->role, ['admin', 'manager'])) {
+            abort(403, 'У вас нет доступа к этому разделу.');
+        }
+        
         $categories = Category::where('id', '!=', $category->id)->get();
         return view('categories.edit', compact('category', 'categories'));
     }
 
     public function update(Request $request, Category $category)
     {
+        // Проверяем права на редактирование
+        if (!in_array(auth()->user()->role, ['admin', 'manager'])) {
+            abort(403, 'У вас нет доступа к этому разделу.');
+        }
+        
         $validated = $request->validate([
             'name' => 'required|max:100',
             'parent_id' => 'nullable|exists:categories,id',
@@ -60,6 +85,11 @@ class CategoryController extends Controller
 
     public function destroy(Category $category)
     {
+        // Только админ может удалять категории
+        if (auth()->user()->role !== 'admin') {
+            abort(403, 'У вас нет доступа к этому разделу.');
+        }
+        
         if ($category->products()->exists()) {
             return back()->with('error', 'Невозможно удалить категорию, так как есть связанные товары.');
         }

@@ -16,6 +16,11 @@ class IncomingInvoiceController extends Controller
 {
     public function index(Request $request)
     {
+        // Проверяем права на просмотр
+        if (!in_array(auth()->user()->role, ['admin', 'storekeeper', 'accountant'])) {
+            abort(403, 'У вас нет прав для просмотра приходных накладных.');
+        }
+
         $query = IncomingInvoice::with(['supplier', 'user', 'warehouseCell']);
         
         if ($request->has('search')) {
@@ -39,6 +44,11 @@ class IncomingInvoiceController extends Controller
 
     public function create()
     {
+        // Только админ и кладовщик могут создавать приходные накладные
+        if (!in_array(auth()->user()->role, ['admin', 'storekeeper'])) {
+            abort(403, 'У вас нет прав для создания приходных накладных.');
+        }
+
         $suppliers = Supplier::all();
         $cells = WarehouseCell::where('is_active', true)->get();
         $products = Product::all();
@@ -48,6 +58,11 @@ class IncomingInvoiceController extends Controller
 
     public function store(Request $request)
     {
+        // Только админ и кладовщик могут создавать приходные накладные
+        if (!in_array(auth()->user()->role, ['admin', 'storekeeper'])) {
+            abort(403, 'У вас нет прав для создания приходных накладных.');
+        }
+
         $validated = $request->validate([
             'number' => 'required|unique:incoming_invoices|max:50',
             'invoice_date' => 'required|date',
@@ -114,12 +129,22 @@ class IncomingInvoiceController extends Controller
 
     public function show(IncomingInvoice $incomingInvoice)
     {
+        // Проверяем права на просмотр
+        if (!in_array(auth()->user()->role, ['admin', 'storekeeper', 'accountant'])) {
+            abort(403, 'У вас нет прав для просмотра приходных накладных.');
+        }
+
         $incomingInvoice->load(['supplier', 'user', 'warehouseCell', 'items.product']);
         return view('invoices.incoming.show', compact('incomingInvoice'));
     }
 
     public function destroy(IncomingInvoice $incomingInvoice)
     {
+        // Только админ может удалять накладные
+        if (auth()->user()->role !== 'admin') {
+            abort(403, 'У вас нет прав для удаления накладных.');
+        }
+
         if ($incomingInvoice->status !== 'draft') {
             return back()->with('error', 'Нельзя удалить проведенную накладную.');
         }

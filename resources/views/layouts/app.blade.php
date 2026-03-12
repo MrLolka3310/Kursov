@@ -15,86 +15,23 @@
         <div class="sidebar">
             <div class="sidebar-header">
                 <h3>Складской учет <span>v1.0</span></h3>
+                <div style="margin-top: 10px; font-size: 0.8rem; color: rgba(255,255,255,0.7);">
+                    {{ Auth::user()->role_name }}
+                </div>
             </div>
             <div class="sidebar-menu">
                 <ul>
-                    <li>
-                        <a href="{{ route('dashboard') }}" class="{{ request()->routeIs('dashboard') ? 'active' : '' }}">
-                            <i class="fas fa-tachometer-alt"></i>
-                            <span>Дашборд</span>
-                        </a>
-                    </li>
-                    
-                    <li>
-                        <a href="{{ route('products.index') }}" class="{{ request()->routeIs('products.*') ? 'active' : '' }}">
-                            <i class="fas fa-box"></i>
-                            <span>Товары</span>
-                        </a>
-                    </li>
-                    
-                    <li>
-                        <a href="{{ route('categories.index') }}" class="{{ request()->routeIs('categories.*') ? 'active' : '' }}">
-                            <i class="fas fa-tags"></i>
-                            <span>Категории</span>
-                        </a>
-                    </li>
-                    
-                    <li class="menu-divider"></li>
-                    
-                    <li>
-                        <a href="{{ route('incoming-invoices.index') }}" class="{{ request()->routeIs('incoming-invoices.*') ? 'active' : '' }}">
-                            <i class="fas fa-truck"></i>
-                            <span>Приход</span>
-                        </a>
-                    </li>
-                    
-                    <li>
-                        <a href="{{ route('outgoing-orders.index') }}" class="{{ request()->routeIs('outgoing-orders.*') ? 'active' : '' }}">
-                            <i class="fas fa-shopping-cart"></i>
-                            <span>Расход</span>
-                        </a>
-                    </li>
-                    
-                    <li class="menu-divider"></li>
-                    
-                    <li>
-                        <a href="{{ route('suppliers.index') }}" class="{{ request()->routeIs('suppliers.*') ? 'active' : '' }}">
-                            <i class="fas fa-truck"></i>
-                            <span>Поставщики</span>
-                        </a>
-                    </li>
-                    
-                    <li>
-                        <a href="{{ route('customers.index') }}" class="{{ request()->routeIs('customers.*') ? 'active' : '' }}">
-                            <i class="fas fa-users"></i>
-                            <span>Клиенты</span>
-                        </a>
-                    </li>
-                    
-                    <li class="menu-divider"></li>
-                    
-                    <li>
-                        <a href="{{ route('warehouse-cells.index') }}" class="{{ request()->routeIs('warehouse-cells.*') ? 'active' : '' }}">
-                            <i class="fas fa-warehouse"></i>
-                            <span>Ячейки склада</span>
-                        </a>
-                    </li>
-                    
-                    <li>
-                        <a href="{{ route('inventory.index') }}" class="{{ request()->routeIs('inventory.*') ? 'active' : '' }}">
-                            <i class="fas fa-clipboard-list"></i>
-                            <span>Инвентаризация</span>
-                        </a>
-                    </li>
-                    
-                    <li class="menu-divider"></li>
-                    
-                    <li>
-                        <a href="{{ route('reports.stock') }}" class="{{ request()->routeIs('reports.*') ? 'active' : '' }}">
-                            <i class="fas fa-chart-bar"></i>
-                            <span>Отчеты</span>
-                        </a>
-                    </li>
+                    @foreach(Auth::user()->available_sections as $section)
+                        @php
+                            $isActive = request()->routeIs($section['route'] . '*');
+                        @endphp
+                        <li>
+                            <a href="{{ route($section['route']) }}" class="{{ $isActive ? 'active' : '' }}">
+                                <i class="fas fa-{{ $section['icon'] }}"></i>
+                                <span>{{ $section['name'] }}</span>
+                            </a>
+                        </li>
+                    @endforeach
                 </ul>
             </div>
         </div>
@@ -106,27 +43,8 @@
                     @yield('page-title')
                 </div>
                 <div class="user-info">
-                    <span class="user-name">{{ Auth::user()->name ?? 'Гость' }}</span>
-                    <span class="user-role">
-                        @if(Auth::check())
-                            @switch(Auth::user()->role)
-                                @case('admin')
-                                    Администратор
-                                    @break
-                                @case('manager')
-                                    Менеджер
-                                    @break
-                                @case('storekeeper')
-                                    Кладовщик
-                                    @break
-                                @case('analyst')
-                                    Аналитик
-                                    @break
-                                @default
-                                    {{ Auth::user()->role }}
-                            @endswitch
-                        @endif
-                    </span>
+                    <span class="user-name">{{ Auth::user()->name }}</span>
+                    <span class="user-role">{{ Auth::user()->role_name }}</span>
                     <form method="POST" action="{{ route('logout') }}" style="display: inline;">
                         @csrf
                         <button type="submit" class="btn btn-outline btn-sm">

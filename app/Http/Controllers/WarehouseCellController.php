@@ -9,6 +9,11 @@ class WarehouseCellController extends Controller
 {
     public function index(Request $request)
     {
+        // Проверяем права на просмотр
+        if (!in_array(auth()->user()->role, ['admin', 'storekeeper'])) {
+            abort(403, 'У вас нет доступа к этому разделу.');
+        }
+        
         $query = WarehouseCell::query();
         
         if ($request->has('search')) {
@@ -27,11 +32,21 @@ class WarehouseCellController extends Controller
 
     public function create()
     {
+        // Проверяем права на создание
+        if (!in_array(auth()->user()->role, ['admin', 'storekeeper'])) {
+            abort(403, 'У вас нет доступа к этому разделу.');
+        }
+        
         return view('warehouse.cells.create');
     }
 
     public function store(Request $request)
     {
+        // Проверяем права на создание
+        if (!in_array(auth()->user()->role, ['admin', 'storekeeper'])) {
+            abort(403, 'У вас нет доступа к этому разделу.');
+        }
+        
         $validated = $request->validate([
             'code' => 'required|unique:warehouse_cells|max:20',
             'zone' => 'nullable|max:50',
@@ -50,6 +65,11 @@ class WarehouseCellController extends Controller
 
     public function show(WarehouseCell $warehouseCell)
     {
+        // Проверяем права на просмотр
+        if (!in_array(auth()->user()->role, ['admin', 'storekeeper'])) {
+            abort(403, 'У вас нет доступа к этому разделу.');
+        }
+        
         $warehouseCell->load(['stockMovements' => function($query) {
             $query->with(['product', 'user'])->latest()->take(20);
         }]);
@@ -59,11 +79,21 @@ class WarehouseCellController extends Controller
 
     public function edit(WarehouseCell $warehouseCell)
     {
+        // Проверяем права на редактирование
+        if (!in_array(auth()->user()->role, ['admin', 'storekeeper'])) {
+            abort(403, 'У вас нет доступа к этому разделу.');
+        }
+        
         return view('warehouse.cells.edit', compact('warehouseCell'));
     }
 
     public function update(Request $request, WarehouseCell $warehouseCell)
     {
+        // Проверяем права на редактирование
+        if (!in_array(auth()->user()->role, ['admin', 'storekeeper'])) {
+            abort(403, 'У вас нет доступа к этому разделу.');
+        }
+        
         $validated = $request->validate([
             'code' => 'required|max:20|unique:warehouse_cells,code,' . $warehouseCell->id,
             'zone' => 'nullable|max:50',
@@ -82,6 +112,11 @@ class WarehouseCellController extends Controller
 
     public function destroy(WarehouseCell $warehouseCell)
     {
+        // Только админ может удалять ячейки
+        if (auth()->user()->role !== 'admin') {
+            abort(403, 'У вас нет доступа к этому разделу.');
+        }
+        
         if ($warehouseCell->stockMovements()->exists()) {
             return back()->with('error', 'Невозможно удалить ячейку, так как есть связанные движения.');
         }

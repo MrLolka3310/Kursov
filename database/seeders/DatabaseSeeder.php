@@ -16,6 +16,7 @@ class DatabaseSeeder extends Seeder
     public function run(): void
     {
         // Создание пользователей
+        // Администратор
         User::create([
             'name' => 'Администратор',
             'email' => 'admin@example.com',
@@ -23,18 +24,36 @@ class DatabaseSeeder extends Seeder
             'role' => 'admin',
         ]);
         
+        // Менеджер
         User::create([
-            'name' => 'Иванов Иван',
+            'name' => 'Иванов Петр (Менеджер)',
+            'email' => 'manager@example.com',
+            'password' => Hash::make('password'),
+            'role' => 'manager',
+        ]);
+        
+        // Кладовщик
+        User::create([
+            'name' => 'Сидоров Иван (Кладовщик)',
             'email' => 'storekeeper@example.com',
             'password' => Hash::make('password'),
             'role' => 'storekeeper',
         ]);
         
+        // Аналитик
         User::create([
-            'name' => 'Петров Петр',
-            'email' => 'manager@example.com',
+            'name' => 'Петрова Анна (Аналитик)',
+            'email' => 'analyst@example.com',
             'password' => Hash::make('password'),
-            'role' => 'manager',
+            'role' => 'analyst',
+        ]);
+        
+        // Бухгалтер
+        User::create([
+            'name' => 'Смирнова Елена (Бухгалтер)',
+            'email' => 'accountant@example.com',
+            'password' => Hash::make('password'),
+            'role' => 'accountant',
         ]);
 
         // Создание категорий
@@ -127,5 +146,6 @@ class DatabaseSeeder extends Seeder
             'max_weight' => 100,
             'is_active' => true,
         ]);
+        
     }
 }
